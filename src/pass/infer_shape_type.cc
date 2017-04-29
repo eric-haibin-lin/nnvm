@@ -242,16 +242,16 @@ inline bool SameType(const NodeAttrs& attrs,
 }
 
 // assigning default type N to both input and output attrs with value -1
-template <int N, int none>
+template <int default_val, int none>
 inline bool DefaultType(const NodeAttrs& attrs,
                      std::vector<int> *iattr,
                      std::vector<int> *oattr) {
   // LOG(INFO) << "DefaultType " << N;
   for (int& v : *oattr) {
-    if (v == none) v = N;
+    if (v == none) v = default_val;
   }
   for (int& v : *iattr) {
-    if (v == none) v = N;
+    if (v == none) v = default_val;
   }
   return true;
 }
@@ -260,13 +260,14 @@ NNVM_REGISTER_PASS(InferStorageType)
 .describe("Infer the storage type of each node entries.")
 .set_body([](Graph ret) {
     // for storage type, the backward attr is not necessarily the same as it's correspondence
-    const int none = 0;
+    const int none = -1;
+    const int kDefaultStorage = 0;
     return InferAttr<int>(
         std::move(ret), none,
         "FInferStorageType", "storage_type_inputs", "storage_type_attr_key",
         "storage_type", "storage_type_num_unknown_nodes",
         [](const int t) { return t == none; },
-        DefaultType<1, none>, false);
+        DefaultType<kDefaultStorage, none>, false);
   })
 .set_change_graph(false)
 .provide_graph_attr("storage_type");
